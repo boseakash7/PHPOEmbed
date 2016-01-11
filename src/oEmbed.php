@@ -74,7 +74,7 @@ class PHPOEmbed{
       
       $e = explode('.', $uInfo['path']);
       
-      switch (end($e)){
+      switch ( strtolower( end($e) ) ){
           case 'gif':
           case 'jpeg':
           case 'jpg':
@@ -83,6 +83,19 @@ class PHPOEmbed{
           default: 
               return 'link';
       }
+      
+  }
+  
+  /**
+   * This is a simple method to covert encoding.
+   * 
+   * @param string $string string to converts 
+   * @param string $encoding encoding type. eg, `UTF-8`.
+   * @return string encoded string.
+   */
+  private function convertStringEncoding( $string, $encoding = 'UTF-8' ){
+      
+      return mb_convert_encoding($string, $encoding, mb_detect_encoding($string, "auto"));
       
   }
   
@@ -112,6 +125,7 @@ class PHPOEmbed{
       
       return null;
   } 
+  
   /**
    * it filters out the content for embed
    * @param string $content give the website content as string
@@ -120,18 +134,9 @@ class PHPOEmbed{
    */
   private function filterContent( $content, $url ){      
       
-        //try to get the encoding
-        $matches = array();        
-        preg_match('/<\s*meta\s*[^\>]*?http-equiv=[\'"]content-type[\'"][^\>]*?\s*>/i',$content,$matches);
-        $meta = empty($matches[0]) ? null : $matches[0];
-
-        preg_match('/content=[\'"][^\'"]*?charset=([\w-]+)(:[^\w-][^\'"])*?[\'"]/i',$meta,$matches);
-        $encoding = empty($matches[1]) ? 'UTF-8' : $matches[1];
-        //end getting the encoding
-        
         //try to get the website title
         preg_match('/<\s*title[^>]*>([\s\S]*?)<\s*\/\s*title\s*>/i', $content, $matches);
-        $title = empty($matches[1]) ? null : mb_convert_encoding($matches[1], 'UTF-8', $encoding);        
+        $title = empty($matches[1]) ? null : $this->convertStringEncoding($matches[1]);        
         //end getting website title
         
         //try to get the website metha description
@@ -142,7 +147,7 @@ class PHPOEmbed{
         
         $matches = array();
         preg_match('/content=[\'"]([\s\S]*?)[\'"]/i',$meta,$matches);        
-        $description = empty($matches[1]) ? null : mb_convert_encoding($matches[1], 'UTF-8', $encoding);
+        $description = empty($matches[1]) ? null : $this->convertStringEncoding($matches[1]);
         //end getting the description
         
         //try to get the meta author
@@ -153,7 +158,7 @@ class PHPOEmbed{
         
         $matches = array();
         preg_match('/content=[\'"](.*?)[\'"]/i', $meta, $matches);
-        $author = empty($matches[1]) ? null : mb_convert_encoding($matches[1], 'UTF-8', $encoding);
+        $author = empty($matches[1]) ? null : $this->convertStringEncoding($matches[1]);
         //end getting website author
         
         //try to get all the images from <img> tag
@@ -182,11 +187,11 @@ class PHPOEmbed{
                 //remove any unwanted commant tag for html
                 $d = preg_replace('/<!--[^>]*>/i', '', $d);
                 //endcode and limit the description
-                $d = substr(mb_convert_encoding($d, 'UTF-8', $encoding), 0, self::$limitDesc);
+                $d = substr($d, 0, self::$limitDesc);
                 //add '...' after the description
                 $d .= strlen($d) > self::$limitDesc ? '...' : '';
                 //assign the new description
-                $description = !empty($d) ? $d : $description;
+                $description = !empty($d) ? $this->convertStringEncoding($d) : null;
             }
             
         }
