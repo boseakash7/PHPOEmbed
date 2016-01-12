@@ -253,7 +253,7 @@ class PHPOEmbed{
       if ( self::$context == null ){
         self::$context = stream_context_create(array('http' => array(           
            'timeout' => self::$timeout,
-           'header' => "User-Agent: Ullash Open source\r\n"
+           'header' => 'User-Agent: Ullash Open source\r\n'           
         )));
       }
   }
