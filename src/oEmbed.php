@@ -76,7 +76,7 @@ class PHPOEmbed{
           'User-Agent: ' . self::$userAgent
       );
       
-      
+//      var_dump($header);
       //now set the header.
       curl_setopt($curlI, CURLOPT_HTTPHEADER, $header);
       
@@ -87,7 +87,7 @@ class PHPOEmbed{
       
       $headerCode = curl_getinfo($curlI, CURLINFO_HTTP_CODE);
       
-      //we will later use the header size to sextract header from
+      //we will later use the header size to subtract header from
       //content.
       $headerSize = curl_getinfo($curlI, CURLINFO_HEADER_SIZE);
       
@@ -104,7 +104,12 @@ class PHPOEmbed{
           preg_match('/(?:Location:|URI:) (.*)/i', $h, $matches);          
           $newUrl = trim($matches[1]);
           
-          $content = !empty($newUrl) && !empty(parse_url($newUrl)) ? $this->getUrlContent($newUrl) : '';
+          if ( !empty($newUrl) && filter_var($newUrl, FILTER_VALIDATE_URL) ) {
+              
+              //add new url.
+              $this->addUrl($newUrl);
+              $content = $this->getUrlContent($newUrl);
+          } 
       }
     
       return $content;
@@ -262,9 +267,16 @@ class PHPOEmbed{
         //loop through every images it grabed
         foreach ( $imatches[1] as $img )
         {
+            /*
+             * Fix for the php version 5.3
+             */
+            if ( strpos($img, '//') === 0 ){
+                $img = 'http:' . $img;
+            }
+            
             $urlInfo = $this->parsedUrl;
             $imgInfo = parse_url($img);
-
+            
             if ( empty($imgInfo['host']) )
             {
                 $imgDir = dirname($imgInfo['path']);
@@ -275,6 +287,7 @@ class PHPOEmbed{
                 if ( strpos($imgDir, '/') === 0 )
                 {
                     $img = $urlAddr . $imgInfo['path'];
+                    
                 }
                 elseif ( !empty($urlInfo['path']) )
                 {
@@ -383,9 +396,12 @@ class PHPOEmbed{
    * This is the constractor function. It checks the all the requirements 
    * before creating the object, including php version checking.
    * 
-   * 
-   * @param type $timeOut
-   * @param type $userAgent
+   * ### Warning
+   *    
+   * @param int $timeOut provide the timeout in seconds. 
+   * (Leave it or set it to null if you do not know what you are doing, risky.)
+   * @param string $userAgent provide a valid user agent. 
+   * (Same here, leave it or set it to null if you do not know what you are doing, risky.)
    */
   public function __construct( $timeOut = null, $userAgent = null ){      
       
@@ -397,9 +413,15 @@ class PHPOEmbed{
           self::$userAgent = $userAgent;
       }
       
+      //now check the php verstion.
+      if ( version_compare(PHP_VERSION, '5.3', '<' ) ){
+          trigger_error("PHP version 5.3+ require.");
+      }
+      
   }
+  
   /**
-   * add the cus to providers 
+   * Add oembed providers.
    * 
    * @param PHPOEmbedProvider $provider
    */

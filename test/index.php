@@ -3,6 +3,8 @@
 include '../src/oEmbed.php';
 //echo ini_get('safe_mode');
 //phpinfo();
+$i =  parse_url('//asd/asd2/fgd.gif');
+var_dump($i);
 ?>
 <html>
     <head>
@@ -21,7 +23,7 @@ include '../src/oEmbed.php';
         <?php
         
         if ( isset($_GET['embed_submit']) ){
-            $OE = new PHPOEmbed();
+            $OE = new PHPOEmbed(null, "Ullash open source\r");
             $data = json_decode($OE->parse($_GET['embed']), true);
             
             
