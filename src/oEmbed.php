@@ -75,8 +75,7 @@ class PHPOEmbed{
           'Connection:keep-alive',          
           'User-Agent: ' . self::$userAgent
       );
-      
-//      var_dump($header);
+
       //now set the header.
       curl_setopt($curlI, CURLOPT_HTTPHEADER, $header);
       
@@ -106,7 +105,7 @@ class PHPOEmbed{
           
           if ( !empty($newUrl) && filter_var($newUrl, FILTER_VALIDATE_URL) ) {
               
-              //add new url.
+              //now we have to change the current url to redirected one.
               $this->addUrl($newUrl);
               $content = $this->getUrlContent($newUrl);
           } 
@@ -173,10 +172,14 @@ class PHPOEmbed{
   }
   
   /**
-   * Use this method if there is not matched pattern found.
+   * This method is called by `parseUrl()` method.
    * 
-   * @param string $url
-   * @return string return null on not matched
+   * This method will be called if there is no provider pattern found for 
+   * the given url. It will get and filter out the data depending on 
+   * the type.   
+   *
+   * @return mixed it returns the json encoded response or null on 
+   * nothing, which is unlikely.
    */
   private function fetchDefault(){
        
@@ -267,6 +270,15 @@ class PHPOEmbed{
         //loop through every images it grabed
         foreach ( $imatches[1] as $img )
         {
+            //before doing anything trim the image.            
+            $img = trim($img);
+            
+            //if the images are base64 then ignore for now.
+            //ToDo may be base64 images workaround.
+            if ( preg_match('/^data:image\/png;base64,/i', $img) ){
+                continue;
+            }
+            
             /*
              * Fix for the php version 5.3
              */
@@ -343,7 +355,7 @@ class PHPOEmbed{
         }while ( $count );
       
         //remove any tags
-        $string = preg_replace('/<.+?>/i', ' ', $string);                                             
+        $string = preg_replace('/<[^>]*>/i', ' ', $string);                                             
         
         $ht = get_html_translation_table(HTML_ENTITIES, ENT_COMPAT | ENT_HTML5, 'UTF-8');
         
@@ -413,28 +425,57 @@ class PHPOEmbed{
           self::$userAgent = $userAgent;
       }
       
-      //now check the php verstion.
+      //now check the php version.
       if ( version_compare(PHP_VERSION, '5.3', '<' ) ){
           trigger_error("PHP version 5.3+ require.");
       }
       
+      if ( !function_exists('curl_init') ){
+          trigger_error("curl extention require to run.");
+      }
   }
   
   /**
-   * Add oembed providers.
+   * Use this method to add a provider of your own.
+   * 
+   * <pre>
+   * $api = 'http://www.hulu.com/api/oembed.json?url=:url';
+   * $pattern = '~hulu\.com/watch/.+~';
+   * $key = 'hulu';
+   * $provider = new PHPOEmbedProvider($api, $pattern, $key);
+   * </pre>
+   * 
+   * <b>$api:</b> provide the api url for the provider. Remember to use :url so that it can be replaced with the url you want to embed.
+   * 
+   * <b>$pattern:</b> write a pattern for the url that it will match for this provider.
+   * 
+   * <b>$key:</b> give this provider an unique key. (It could be anything).
+   * 
+   * Now add the provider.
+   * <code>PHPOEmbed::addProvider($provider);</code>
+   * 
+   * @example provider.php see this file to know more about adding
+   * providers.
    * 
    * @param PHPOEmbedProvider $provider
    */
   public static function addProvider( PHPOEmbedProvider $provider ){
-
+      
       self::$providers[$provider->getUKey()] = array('api' => $provider->getApi() , 'pattern' => $provider->getPattern() );
 
   }
+  
   /**
    * Parse and get the oembed data from an url.
    * 
-   * @param string $url provide the url to parse
-   * @return mixed 
+   * This method will run the whole work to return your oembed response.
+   * 
+   * @param string $url provide the url to parse. If you are asking the url from users then
+   * validate it before parsing, else provide a valid url. Remember PHPOEmbed does not validate your provided 
+   * url.
+   * 
+   * @return string it will return the response as a json encoded string, with a valid format of 
+   * {@link http://oembed.com/ oembed.}
    */
   public final function parse( $url ){
       
@@ -451,6 +492,7 @@ class PHPOEmbed{
   }
   
 }
+
 
 class PHPOEmbedProvider{
 
