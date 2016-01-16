@@ -2,7 +2,9 @@
 Embed anything to your website in simple and easy way. Its is created by me because of a website I am creating and its a social network and it is my first open source script.
 But you can use this script for any other kind of websites you will build. 
 
-If you dont know any thing about **oEmbed** then you can read it from [oEmbed](http://www.oembed.com/).
+If you don't know any thing about **oEmbed** then you can read it from [oEmbed](http://www.oembed.com/).
+
+This software requires PHP version 5.3+ to work.
 
 ## Features 
 * It is pretty easy an simple.
