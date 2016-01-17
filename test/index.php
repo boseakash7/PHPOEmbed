@@ -7,7 +7,6 @@ include '../src/oEmbed.php';
             $data = json_decode($OE->parse($_REQUEST['url']), true);
             
             print_r($data);
-            
             //$data2 = json_decode($OE->parse('youtube.com'), true);
             
 //            function cool( $data ){
@@ -29,4 +28,8 @@ include '../src/oEmbed.php';
 //            }
 //            
 //            cool($data);
+        }else{
+            
+            echo 'use test/?url=example.com to test';
+            
         }

@@ -116,11 +116,13 @@ class PHPOEmbed{
       
       curl_close($curlI);
       
+      //get the header.
+      $h = substr($content, 0, $headerSize);
+      
+      //get the body  to return
+      $body = substr($content, $headerSize);
       
       if ( $headerCode == 301 || $headerCode == 302 ){
-          
-          //get the header.
-          $h = substr($content, 0, $headerSize);
           
           //grab the redirect url.
           $matches = array();
@@ -131,11 +133,11 @@ class PHPOEmbed{
               
               //now we have to change the current url to redirected one.
               $this->addUrl($newUrl);
-              $content = $this->getUrlContent($newUrl);
+              $body = $this->getUrlContent($newUrl);
           } 
       }
     
-      return $content;
+      return $body;
   }
   
   /**
